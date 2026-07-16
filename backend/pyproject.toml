@@ -1,0 +1,73 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "enterprise-ai-bi-platform-backend"
+version = "0.1.0"
+description = "Enterprise AI Business Intelligence & Analytics Platform — a multi-agent natural-language-to-SQL BI service (FastAPI + LangGraph) standing on the bi-* platform packages. Business users ask questions in plain English; seven agents return a summary, table, chart and optional export against the ENTERPRISE_BI MySQL."
+requires-python = ">=3.11,<3.13"
+license = { text = "Proprietary" }
+authors = [{ name = "ABC Corporation" }]
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.30",
+    "pydantic>=2.7,<3",
+    "pydantic-settings>=2.3,<3",
+    "langgraph>=0.2,<0.3",
+    "pyyaml>=6",
+    "sqlalchemy>=2,<3",
+    "pymysql>=1.1",
+    "structlog>=24.1",
+    # Platform packages (editable path-deps in dev — see [tool.uv.sources]).
+    "bi-base",
+    "bi-auth",
+    "bi-llm",
+    "bi-data",
+    "bi-guardrails",
+    "bi-sql-guard",
+    "bi-schema-rag",
+    "bi-viz",
+    "bi-reports",
+]
+
+[project.optional-dependencies]
+# Real LLM providers + FAISS acceleration + rich exports (prod).
+llm = ["openai>=1.30"]
+rag = ["faiss-cpu>=1.7", "sentence-transformers>=2.2"]
+reports = ["openpyxl>=3.1", "reportlab>=4.0"]
+dev = [
+    "pytest>=8.0,<9",
+    "pytest-asyncio>=0.23,<1",
+    "httpx>=0.27",
+    "pyjwt[crypto]>=2.8",
+]
+
+[tool.uv.sources]
+bi-base = { path = "packages/bi-base", editable = true }
+bi-auth = { path = "packages/bi-auth", editable = true }
+bi-llm = { path = "packages/bi-llm", editable = true }
+bi-data = { path = "packages/bi-data", editable = true }
+bi-guardrails = { path = "packages/bi-guardrails", editable = true }
+bi-sql-guard = { path = "packages/bi-sql-guard", editable = true }
+bi-schema-rag = { path = "packages/bi-schema-rag", editable = true }
+bi-viz = { path = "packages/bi-viz", editable = true }
+bi-reports = { path = "packages/bi-reports", editable = true }
+
+[tool.hatch.build.targets.wheel]
+packages = ["enterprise_bi"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "SIM"]
+# E501: long lines OK. B008: `Depends(...)` in FastAPI defaults is the idiomatic
+# dependency-injection pattern, not a bug.
+ignore = ["E501", "B008"]

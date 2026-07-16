@@ -1,0 +1,22 @@
+# Per-task LLM routing (bi-llm JsonTaskRouter). Cheap tasks (intent) route to a
+# small/fast model; SQL generation routes to a stronger model. `provider` keys a
+# completer registered at the composition root. In dev/CI with no API key, every
+# provider resolves to the deterministic OfflineCompleter.
+default_provider: gemini
+
+routes:
+  intent:
+    provider: gemini
+    model: gemini-1.5-flash
+    temperature: 0.0
+    required_keys: [intent, domain, wants_export]
+  sql_plan:
+    provider: openai
+    model: gpt-4o-mini
+    temperature: 0.0
+    required_keys: [sql, tables]
+  insight:
+    provider: gemini
+    model: gemini-1.5-pro
+    temperature: 0.3
+    required_keys: [summary]

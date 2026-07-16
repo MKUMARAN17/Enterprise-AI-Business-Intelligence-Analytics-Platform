@@ -1,0 +1,59 @@
+# Local / staging stack: MySQL (auto-loads the CAPS schema + seed), Redis (memory),
+# the FastAPI backend, and Nginx as the reverse proxy.
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpw
+      MYSQL_DATABASE: ENTERPRISE_BI
+      MYSQL_USER: bi
+      MYSQL_PASSWORD: bi
+    ports:
+      - "3306:3306"
+    volumes:
+      # *.sql in docker-entrypoint-initdb.d run in filename order on first boot.
+      - ../backend/sql/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ../backend/sql/02_seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-prootpw"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    environment:
+      BI_DATABASE_URL: mysql+pymysql://bi:bi@db:3306/ENTERPRISE_BI
+      BI_REDIS_URL: redis://redis:6379/0
+      BI_JWT_SECRET: ${BI_JWT_SECRET:-dev-secret-change-me-32-bytes-min}
+      BI_JWT_AUDIENCE: enterprise-bi
+      BI_OPENAI_API_KEY: ${BI_OPENAI_API_KEY:-}
+      BI_GEMINI_API_KEY: ${BI_GEMINI_API_KEY:-}
+      BI_JSON_LOGS: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    expose:
+      - "8000"
+
+  nginx:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:

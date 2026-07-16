@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bi-reports"
+version = "0.1.0"
+description = "Report export — renders a query result Dataset to CSV (stdlib), Excel (openpyxl, optional), and PDF (reportlab, optional), for the platform's Excel/PDF/CSV export requirement."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = { text = "Proprietary" }
+authors = [{ name = "ABC Corporation" }]
+dependencies = []
+
+[project.optional-dependencies]
+excel = ["openpyxl>=3.1"]
+pdf = ["reportlab>=4.0"]
+dev = ["pytest>=8.0,<9"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["bi_reports"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "SIM"]
+ignore = ["E501"]

@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bi-data"
+version = "0.1.0"
+description = "Data-access layer: a SQLAlchemy 2.0 engine wrapper that executes ONLY guard-validated SELECTs against the ENTERPRISE_BI MySQL, inside a read-only rolled-back transaction, and shapes rows into a typed Dataset (UPPERCASE columns) for the visualization/report/insight layers."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = { text = "Proprietary" }
+authors = [{ name = "ABC Corporation" }]
+dependencies = [
+    "bi-base",
+    "sqlalchemy>=2,<3",
+]
+
+[project.optional-dependencies]
+mysql = ["pymysql>=1.1"]
+dev = ["pytest>=8.0,<9", "aiosqlite>=0.19"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["bi_data"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "SIM"]
+ignore = ["E501"]

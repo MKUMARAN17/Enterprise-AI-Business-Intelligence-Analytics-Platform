@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "bi-schema-rag"
+version = "0.1.0"
+description = "Schema-aware Retrieval-Augmented Generation: indexes MySQL table/column metadata + a business glossary so the SQL-generation agent retrieves only the relevant schema slice for a natural-language question. FAISS + BAAI bge embeddings when available; deterministic keyword retriever fallback otherwise."
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = { text = "Proprietary" }
+authors = [{ name = "ABC Corporation" }]
+dependencies = []
+
+[project.optional-dependencies]
+faiss = ["faiss-cpu>=1.7", "sentence-transformers>=2.2"]
+dev = ["pytest>=8.0,<9"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["bi_schema_rag"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "SIM"]
+ignore = ["E501"]
