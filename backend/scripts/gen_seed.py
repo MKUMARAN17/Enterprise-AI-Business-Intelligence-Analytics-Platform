@@ -124,7 +124,9 @@ vals = ",\n".join(
 )
 print(f"INSERT INTO PRODUCTS (PRODUCT_ID,PRODUCT_NAME,CATEGORY,UNIT_PRICE,IS_ACTIVE) VALUES\n{vals};")
 
-# CUSTOMERS (5 per branch)
+# CUSTOMERS (12 per branch → 96 total; keeps every fact table under the 500 cap)
+CUSTOMERS_PER_BRANCH = 12
+COLLECTION_CUSTOMERS_PER_BRANCH = 5  # subset used for monthly collections (→ ~480 rows)
 print("\n-- CUSTOMERS")
 cust_rows = []
 cid = 0
@@ -132,7 +134,7 @@ customer_by_branch: dict[int, list[int]] = {}
 segments = ["RETAIL", "CORPORATE", "SME"]
 for b in BRANCHES:
     customer_by_branch[b[0]] = []
-    for j in range(5):
+    for j in range(CUSTOMERS_PER_BRANCH):
         cid += 1
         name = f"Customer {cid:03d}"
         seg = segments[(cid + j) % 3]
@@ -158,14 +160,15 @@ print(
     + ";"
 )
 
-# EMPLOYEES (4 per branch)
+# EMPLOYEES (8 per branch → 64 total)
+EMPLOYEES_PER_BRANCH = 8
 print("\n-- EMPLOYEES")
 emp_rows = []
 eid = 0
 emp_by_branch: dict[int, list[int]] = {}
 for b in BRANCHES:
     emp_by_branch[b[0]] = []
-    for j in range(4):
+    for j in range(EMPLOYEES_PER_BRANCH):
         eid += 1
         dep = DEPARTMENTS[j % len(DEPARTMENTS)]
         desig = DESIGNATIONS[j % len(DESIGNATIONS)]
@@ -210,8 +213,9 @@ for b in BRANCHES:
         # June 2026 dip for Bangalore(2) and Kolkata(8) — powers scenario 3
         if ym == "2026-06" and b[0] in (2, 8):
             trend *= 0.72
-        per_cust = trend / len(customer_by_branch[b[0]])
-        for c in customer_by_branch[b[0]]:
+        coll_customers = customer_by_branch[b[0]][:COLLECTION_CUSTOMERS_PER_BRANCH]
+        per_cust = trend / len(coll_customers)
+        for c in coll_customers:
             colid += 1
             amt = round(per_cust * random.uniform(0.85, 1.15), 2)
             day = random.randint(1, 27)
@@ -245,8 +249,9 @@ print(",\n".join(rev_rows) + ";")
 print("\n-- SALES")
 sale_rows = []
 sid = 0
+SALES_PER_BRANCH = 60  # 8 branches → 480 rows
 for b in BRANCHES:
-    for _ in range(12):
+    for _ in range(SALES_PER_BRANCH):
         sid += 1
         p = random.choice(PRODUCTS)
         qty = random.randint(1, 5)
@@ -271,8 +276,9 @@ pay_rows = []
 clid = 0
 payid = 0
 statuses = ["SUBMITTED", "APPROVED", "DENIED", "PAID"]
+CLAIMS_PER_BRANCH = 30  # 8 branches → 240 claims (PAYMENTS derived from PAID/APPROVED)
 for b in BRANCHES:
-    for _ in range(6):
+    for _ in range(CLAIMS_PER_BRANCH):
         clid += 1
         cust = random.choice(customer_by_branch[b[0]])
         ym, d0 = random.choice(MONTHS)
@@ -320,8 +326,9 @@ print("\n-- PROCUREMENT")
 proc_rows = []
 poid = 0
 suppliers = ["Acme Supplies", "Global Traders", "Prime Vendors", "Metro Wholesale"]
+PROCUREMENT_PER_BRANCH = 10  # 8 branches → 80 purchase orders
 for b in BRANCHES:
-    for _ in range(3):
+    for _ in range(PROCUREMENT_PER_BRANCH):
         poid += 1
         p = random.choice(PRODUCTS)
         qty = random.randint(50, 400)

@@ -1,3 +1,11 @@
+Date: 16/07/2026 14:57
+Issue: The seed dataset was small (COLLECTIONS ~480 but most other tables in the tens), so demos and manual testing had thin data across sales, claims, customers, and employees.
+Impact: The seed now carries a richer dataset — up to ~500 rows in the primary fact tables and proportionally larger supporting tables (CUSTOMERS 96, EMPLOYEES 64, EMPLOYEE_PERFORMANCE 128, COLLECTIONS 480, SALES 480, CLAIMS 240, PAYMENTS 119, PROCUREMENT 80; ~1,939 rows total), with no table exceeding 500. The demo scenarios are preserved (June-2026 dip on Bangalore/Kolkata, Kerala branches, Chennai vs Bangalore, Q1/Q2 employee comparison) and the dump still parses as valid MySQL with all identifiers UPPERCASE.
+Fix: Parameterised scripts/gen_seed.py with per-table volume constants (CUSTOMERS_PER_BRANCH=12, COLLECTION_CUSTOMERS_PER_BRANCH=5, EMPLOYEES_PER_BRANCH=8, SALES_PER_BRANCH=60, CLAIMS_PER_BRANCH=30, PROCUREMENT_PER_BRANCH=10). COLLECTIONS now uses a 5-customer subset per branch so it stays under the 500 cap despite the larger CUSTOMERS pool, keeping the 12-month trend intact. Regenerated sql/02_seed.sql from the updated generator.
+Location:
+- enterprise-ai-bi-platform/backend/scripts/gen_seed.py
+- enterprise-ai-bi-platform/backend/sql/02_seed.sql
+
 Date: 16/07/2026 13:33
 Issue: The Enterprise AI Business Intelligence & Analytics Platform described in Enterprise_AI_Business_Intelligence_Platform.docx had no code — only a specification for a natural-language-to-SQL multi-agent BI service.
 Impact: A production-standard backend now exists: business users authenticate with JWT and POST a plain-English question to /api/v1/ask; a nine-node LangGraph (guardrail, intent, schema-RAG, SQL generation, SQL validation, execution, analytics, visualization, insight) returns a business summary, a table, a Vega-Lite chart spec, and an optional Excel/PDF/CSV export, with every turn written to AUDIT_LOG. The whole graph runs end-to-end with no MySQL and no API key via a deterministic offline LLM completer; 161 tests pass.
