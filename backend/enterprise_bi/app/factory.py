@@ -49,4 +49,18 @@ def create_app(settings: Settings | None = None, *, service=None, validator=None
             )
 
     app.include_router(build_conversation_router(auth_dep))
+
+    # DEV-ONLY sign-in for the SPA (mints a token for a chosen role). Guarded by
+    # BI_ALLOW_DEV_LOGIN + an HS256 secret; never mount this in production.
+    if settings.allow_dev_login and settings.jwt_secret:
+        from enterprise_bi.api.dev_routes import build_dev_router
+
+        app.include_router(
+            build_dev_router(
+                secret=settings.jwt_secret,
+                audience=settings.jwt_audience,
+                issuer=settings.jwt_issuers[0] if settings.jwt_issuers else "enterprise-bi-dev",
+            )
+        )
+
     return app

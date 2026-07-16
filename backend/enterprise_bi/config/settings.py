@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     jwt_public_key_path: str = ""              # RS256 PEM (prod)
     jwt_audience: str = "enterprise-bi"
     jwt_issuers: list[str] = ["enterprise-bi-dev"]
+    # DEV ONLY: expose POST /api/v1/dev/login to mint a token for a chosen role
+    # (HS256, needs jwt_secret). Never enable in production — it is an auth bypass.
+    allow_dev_login: bool = False
 
     # ── Database ─────────────────────────────────────────────────────────
     # Analytical reads (sync). e.g. mysql+pymysql://user:pw@host:3306/ENTERPRISE_BI
